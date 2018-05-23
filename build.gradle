@@ -1,0 +1,43 @@
+buildscript {
+    dependencies {
+    	classpath files('./tools/gogradle-0.9-all.jar')
+    }
+}
+
+apply plugin : 'com.github.blindpirate.gogradle'
+
+golang {
+    packagePath = 'github.com/fastcloud/nova'
+    buildMode = 'DEV'
+    goVersion = '1.10.1'
+}
+
+dependencies {
+    golang {
+        build 'github.com/labstack/echo@v3.3.5'
+    }
+}
+
+repositories {
+    golang {
+        root ~/golang\.org\/x\/[\w-]+/
+        vcs 'git'
+        url { 
+            "https://github.com/golang/${it.split('/')[2]}" 
+        }
+    }
+}
+
+build {
+    targetPlatform = ['windows-amd64']
+    outputLocation = './release/${GOOS}_${GOARCH}_${PROJECT_NAME}${GOEXE}'
+}
+
+task quickbuild(type: com.github.blindpirate.gogradle.Go) {
+    go 'build -v -o ' + build.outputLocation + ' ' + golang.packagePath
+    doLast {
+        if(exitValue != 0) {
+            println "return code is ${exitValue}"
+        }
+    }
+}
